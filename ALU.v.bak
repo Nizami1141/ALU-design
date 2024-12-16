@@ -1,0 +1,19 @@
+module ALU(clk, A, B, seg, an);
+    input clk;
+    input [2:0] A, B; // 3-bit inputs
+    output [6:0] seg; // Seven-segment display
+    output [3:0] an;  // Anodes for display
+
+    wire [3:0] cla_out, sub_out, mux_out;
+    wire [1:0] counter_out;
+    wire [3:0] anode_signal;
+
+    cla3bit cla(.A(A), .B(B), .out(cla_out));
+    sub3bit sub(.A(A), .B(B), .out(sub_out));
+    counter2bit counter(.clk(clk), .reset(1'b0), .out(counter_out));
+    dec2to4 decoder(.in(counter_out), .out(anode_signal));
+    mux4to1 multiplexer(.in0(cla_out[3:0]), .in1({3'b000, cla_out[3]}), .in2(sub_out[3:0]), .in3(4'b0000), .sel(counter_out), .out(mux_out));
+    bcd2sseg bcd_to_seg(.bcd(mux_out), .seg(seg));
+
+    assign an = ~anode_signal; // Active low for Basys 3
+endmodule
